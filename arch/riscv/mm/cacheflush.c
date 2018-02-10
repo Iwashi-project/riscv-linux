@@ -13,6 +13,8 @@
 
 #include <asm/pgtable.h>
 #include <asm/cacheflush.h>
+#include "../../include/asm/cacheflush.h"
+#include <linux/page-flags.h>
 
 void flush_icache_pte(pte_t pte)
 {
