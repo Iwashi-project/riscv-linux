@@ -585,6 +585,12 @@ serial8250_register_ports(struct uart_driver *drv, struct device *dev)
 static void univ8250_console_write(struct console *co, const char *s,
 				   unsigned int count)
 {
+    __asm__( ".long 0x0410002B\n\t");
+    __asm__( ".long 0x0410002B\n\t");
+    __asm__( ".long 0x0410002B\n\t");
+    __asm__( ".long 0x0410002B\n\t");
+    __asm__( ".long 0x0410002B\n\t");
+    printk("8250_console_write\n");
 	struct uart_8250_port *up = &serial8250_ports[co->index];
 
 	serial8250_console_write(up, s, count);
