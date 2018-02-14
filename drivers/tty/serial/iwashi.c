@@ -37,69 +37,71 @@ static struct uart_port iwashi_ports[IWASHI_NR_UARTS];
  */
 
 static void iwashi_console_write(struct console *co, const char *s,
-				unsigned int count)
+        unsigned int count)
 {
-    int i = 0;
+    unsigned int c_tmp;
+    for(c_tmp = count; c_tmp > 0; c_tmp--) {
+        char c = *s;
         __asm__ __volatile__(
-                ".word 0x0450002B\n\t"
+                "sw x1, -4(sp)\n\t"
+                "lw x1, %0\n\t"
+                ".word 0x0000802B\n\t"
+                "lw x1, -4(sp)\n\t"
+                : : "A"(c)
                 );
+        s++;
+    }
 }
 static int iwashi_console_setup(struct console *co, char *options)
 {
+    struct uart_port *port;
+    int baud = 115200;
+    int bits = 8;
+    int parity = 'n';
+    int flow = 'n';
 
-    printk("iwashi50\n\n");
+    if (co->index < 0 || co->index >= IWASHI_NR_UARTS)
+        return -EINVAL;
 
-	struct uart_port *port;
-	int baud = 115200;
-	int bits = 8;
-	int parity = 'n';
-	int flow = 'n';
+    port = &iwashi_ports[co->index];
 
-	if (co->index < 0 || co->index >= IWASHI_NR_UARTS)
-		return -EINVAL;
+    /* Has the device been initialized yet? */
+    if (!port->mapbase) {
+        pr_debug("console on ttyUL%i not present\n", co->index);
+        return -ENODEV;
+    }
 
-	port = &iwashi_ports[co->index];
-
-	/* Has the device been initialized yet? */
-	if (!port->mapbase) {
-		pr_debug("console on ttyUL%i not present\n", co->index);
-		return -ENODEV;
-	}
-
-	/* not initialized yet? */
+    /* not initialized yet? */
     /*
-	if (!port->membase) {
-		if (ulite_request_port(port))
-			return -ENODEV;
-	}
-    */
+       if (!port->membase) {
+       if (ulite_request_port(port))
+       return -ENODEV;
+       }
+       */
 
-	if (options)
-		uart_parse_options(options, &baud, &parity, &bits, &flow);
+    if (options)
+        uart_parse_options(options, &baud, &parity, &bits, &flow);
 
-	return uart_set_options(port, co, baud, parity, bits, flow);
+    return uart_set_options(port, co, baud, parity, bits, flow);
 
 }
 
 static struct uart_driver iwashi_uart_driver;
 
 static struct console iwashi_console = {
-	.name	= IWASHI_NAME,
-	.write	= iwashi_console_write,
-	.device	= uart_console_device,
-	.setup	= iwashi_console_setup,
+    .name	= IWASHI_NAME,
+    .write	= iwashi_console_write,
+    .device	= uart_console_device,
+    .setup	= iwashi_console_setup,
     .flags	= CON_PRINTBUFFER | CON_ENABLED,
-	.index	= -1, /* Specified on the cmdline (e.g. console=ttyUL0 ) */
-	.data	= &iwashi_uart_driver,
+    .index	= -1, /* Specified on the cmdline (e.g. console=ttyUL0 ) */
+    .data	= &iwashi_uart_driver,
 };
 
 static int __init iwashi_console_init(void)
 {
-    __asm__( ".long 0x0430002B\n\t");
-    printk("\n\nhogehugapiyo\n");
-    __asm__( ".long 0x0430002B\n\t");
-	register_console(&iwashi_console);
-	return 0;
+    register_console(&iwashi_console);
+    return 0;
 }
 
 console_initcall(iwashi_console_init);

@@ -1552,8 +1552,6 @@ SYSCALL_DEFINE3(syslog, int, type, char __user *, buf, int, len)
 static void call_console_drivers(const char *ext_text, size_t ext_len,
 				 const char *text, size_t len)
 {
-    asm volatile(".long 0x0420002B\n\t");
-    printk("piyo\n");
     struct console *con;
 
 	trace_console_rcuidle(text, len);
@@ -2413,7 +2411,6 @@ void register_console(struct console *newcon)
 					bcon->name, bcon->index))
             {
                 
-     __asm__( ".long 0x04c0002B\n\t");
                 return;
             }
 
@@ -2428,7 +2425,6 @@ void register_console(struct console *newcon)
 				pr_info("Too late to register bootconsole %s%d\n",
 					newcon->name, newcon->index);
 			
-     __asm__( ".long 0x04d0002B\n\t");
                 return;
 			}
 		}
@@ -2480,7 +2476,6 @@ void register_console(struct console *newcon)
 			if (_braille_register_console(newcon, c))
             {
                 
-     __asm__( ".long 0x04e0002B\n\t");
                 return;}
 
 			if (newcon->setup &&
@@ -2499,7 +2494,6 @@ void register_console(struct console *newcon)
 	if (!(newcon->flags & CON_ENABLED))
     {
         
-     __asm__( ".long 0x04f0002B\n\t");
         return;}
 
 	/*
